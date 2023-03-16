@@ -1,4 +1,4 @@
-export default async function getConversion(value: number) {
+export default async function sendInput(value: number) {
   const body = {
     value
   };

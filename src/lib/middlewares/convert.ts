@@ -1,21 +1,27 @@
 import { Application } from 'express';
 import numberToRoman from '../utils/number-to-roman';
+import SSEManager from '../utils/sse-manager';
 
-export default function convertMiddleware(app: Application) {
-  app.post('/convert', (req, res) => {
-    try {
-      const romanNumeral = numberToRoman(req.body.value);
-      return res.status(200).send({
-        status: 'OK',
-        payload: romanNumeral
-      })
-    } catch(err) {
-      const message = err instanceof Error ? err.message : err;
+export default function createConvertMiddleware(manager: SSEManager) {
+  return function convertMiddleware(app: Application) {
+    app.post('/convert', (req, res) => {
+      try {
+        const romanNumeral = numberToRoman(req.body.value);
+        res.sendStatus(200);
 
-      return res.status(400).send({
-        status: 'ERROR',
-        payload: message
-      })
-    }
-  })
+        manager.emit({
+          status: 'OK',
+          payload: romanNumeral
+        })
+      } catch (err) {
+        const message = err instanceof Error ? err.message : err;
+        res.sendStatus(400);
+
+        manager.emit({
+          status: 'ERROR',
+          payload: message
+        })
+      }
+    });
+  }
 }
